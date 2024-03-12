@@ -24,9 +24,9 @@ export class PlayersDrawing extends DrawingUtils
 
         for (const playerOne of players)
         {
-            const items = playerOne.items;
 
-            if (items == null) continue;
+            if (!playerOne.items) continue;
+            const items = Array.from(playerOne.items);
 
 
             let posX = 5;
@@ -37,7 +37,9 @@ export class PlayersDrawing extends DrawingUtils
             if (total > canvas.height) break; // Ecxeed canvas size
 
             const nickname = playerOne.nickname;
-            this.drawTextItems(posX, posY, nickname, context, "14px", "white");
+            const nickColor = playerOne.flagId ? 'red' : 'white'
+
+            this.drawTextItems(posX, posY, nickname, context, "14px", nickColor);
 
             let posTemp = posX + context.measureText(nickname).width + 10;
             this.drawTextItems(posTemp, posY, playerOne.currentHealth + "/" + playerOne.initialHealth, context, "14px", "red");
@@ -60,10 +62,17 @@ export class PlayersDrawing extends DrawingUtils
             {
                 const itemInfo = this.itemsInfo[item];
 
-                if (itemInfo != undefined && this.settings.GetPreloadedImage(itemInfo, "Items") !== null)
-                {
-                    this.DrawCustomImage(context, posX, posY, itemInfo, "Items", 40);
+                if (itemInfo) {
+                    const imageUrl = `https://render.albiononline.com/v1/item/${itemInfo}.png`;
+                    const size = 40;
+                    this.DrawPlainUrlImage(context, posX, posY, size, imageUrl);
+                    // context.drawImage(imageUrl, posX - size / 2, posY - size / 2, size, size);
                 }
+
+                // if (itemInfo != undefined && this.settings.GetPreloadedImage(itemInfo, "Items") !== null)
+                // {
+                    // this.DrawCustomImage(context, posX, posY, itemInfo, "Items", 40);
+                // }
 
                 posX += 10 + 40;
                 itemsListString += item.toString() + " ";
@@ -71,7 +80,7 @@ export class PlayersDrawing extends DrawingUtils
 
             if (devMode)
             {
-                this.drawTextItems(posTemp, posY - 5, itemsListString, context, "14px", "white");
+                this.drawTextItems(posTemp, posY - 25, itemsListString, context, "14px", "white");
             }
       
             posY += 45;
@@ -134,8 +143,9 @@ export class PlayersDrawing extends DrawingUtils
             }
             if (this.settings.settingNickname == true)
             {
+                const nickColor = playerOne.flagId ? 'red' : 'white';
                 space = space + 20;
-                this.drawText(point.x, point.y + space, playerOne.nickname, context);
+                this.drawText(point.x, point.y + space, playerOne.nickname, context, nickColor);
             }
             if (this.settings.settingDistance)
             {

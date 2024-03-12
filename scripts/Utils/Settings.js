@@ -7,6 +7,7 @@ class Settings
         this.images = {};
         this.item_images = {}
         this.map_images = {}
+        this.url_images = {}
         //#endregion
 
         //#region Maps
@@ -189,6 +190,18 @@ class Settings
                     }
 
                     break;
+                
+                case "plain_url":
+                    const img = new Image();
+                    img.onload = () => {
+                        this.url_images[path] = img;
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        reject();
+                    };
+                    img.src = path;
+                    break;
 
                 default:
                     reject();
@@ -209,6 +222,9 @@ class Settings
 
             case "Items":
                 return this.item_images[path];
+            
+            case "plain_url":
+                return this.url_images[path];
 
             default:
                 return null;

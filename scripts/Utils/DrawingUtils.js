@@ -93,6 +93,15 @@
         }
     }
 
+    DrawPlainUrlImage(ctx, x, y, size, url) {
+        const preloadedImage = this.settings.GetPreloadedImage(url, 'plain_url');
+        if (preloadedImage) {
+            ctx.drawImage(preloadedImage, x - size / 2, y - size / 2, size, size);
+        } else {
+            this.settings.preloadImageAndAddToList(url, 'plain_url')
+        }
+    }
+
     transformPoint(x, y)
     {
         //const angle = -0.7071;
@@ -111,10 +120,10 @@
     }
 
 
-     drawText(xTemp, yTemp, text, ctx )
+     drawText(xTemp, yTemp, text, ctx, color = undefined)
      {
          ctx.font = this.fontSize + " " + this.fontFamily;
-         ctx.fillStyle = this.textColor;
+         ctx.fillStyle = color || this.textColor;
   
          let x = xTemp;
          let y = yTemp;
