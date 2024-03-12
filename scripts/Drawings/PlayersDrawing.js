@@ -24,10 +24,9 @@ export class PlayersDrawing extends DrawingUtils
 
         for (const playerOne of players)
         {
-            const items = playerOne.items;
+            if (!playerOne.items) continue;
 
-            if (items == null) continue;
-
+            const items = Array.from(playerOne.items)
 
             let posX = 5;
             const total = posY + 20;
