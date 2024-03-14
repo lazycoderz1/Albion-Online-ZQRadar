@@ -6,11 +6,10 @@ const PhotonParser = require('./scripts/classes/PhotonPacketParser');
 var Cap = require('cap').Cap;
 var decoders = require('cap').decoders;
 const WebSocket = require('ws');
-const ip = require('ip');
 
 const fs = require("fs");
 
-
+const { getAdapterIp } = require('./server-scripts/adapter-selector')
 
 
 
@@ -111,15 +110,28 @@ app.listen(port, () => {
 });
 
 
-
-const getActiveIP = () => {
-  const interfaces = ip.address();
-  return interfaces;
-};
-
-
 var c = new Cap();
-var device = Cap.findDevice('192.168.1.10');
+
+let adapterIp;
+
+if (fs.existsSync('ip.txt'))
+  adapterIp = fs.readFileSync('ip.txt', { encoding: 'utf-8', flag: 'r' })
+  
+
+if (!adapterIp)
+{
+  adapterIp = getAdapterIp()
+}
+else
+{
+  console.log();
+  console.log(`Using last adapter selected - ${adapterIp}`);
+  console.log('If you want to change adapter, delete the  "ip.txt"  file.');
+  console.log();
+}
+
+const device = Cap.findDevice(adapterIp);
+
 const filter = 'udp and (dst port 5056 or src port 5056)';
 var bufSize =  4096;
 var buffer = Buffer.alloc(4096);
@@ -128,27 +140,25 @@ var linkType = c.open(device, filter, bufSize, buffer);
 
 c.setMinBytes && c.setMinBytes(0);
 
+
+// setup Cap event listener on global level
+c.on('packet', function (nbytes, trunc) {
+  let ret = decoders.Ethernet(buffer);
+  ret = decoders.IPV4(buffer, ret.offset);
+  ret = decoders.UDP(buffer, ret.offset);
+
+  let payload = buffer.slice(ret.offset, nbytes);
+
+  // Parse the UDP payload
+  try {
+    manager.handle(payload);
+  }
+  catch { }
+});
+
 const server = new WebSocket.Server({ port: 5002, host: 'localhost'});
-server.on('connection', () => {
+server.on('listening', () => {
   console.log("openned");
-
-  c.on('packet', function(nbytes, trunc) {
-
-    let  ret = decoders.Ethernet(buffer);
-    ret = decoders.IPV4(buffer, ret.offset);
-    ret = decoders.UDP(buffer, ret.offset);
-
-    let payload = buffer.slice(ret.offset, nbytes);
-
-    // Parse the UDP payload
-    try
-    {
-        manager.handle(payload);
-    }
-    catch {}
-
-  });
-
 
   manager.on('event', (dictonary) =>
   {
@@ -176,6 +186,10 @@ server.on('connection', () => {
   });
 });
 
+server.on('close', () => {
+  console.log('closed')
+  manager.removeAllListeners()
+})
 
 
 
