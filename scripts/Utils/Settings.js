@@ -8,6 +8,7 @@ class Settings
         this.item_images = {}
         this.map_images = {}
         this.url_images = {}
+        this.flag_images = {}
         //#endregion
 
         //#region Maps
@@ -68,6 +69,8 @@ class Settings
         this.livingResourcesHP = false;
         this.livingResourcesID = false;
         //#endregion
+        this.resourceSize = false;
+
 
         //#region Dungeons
         this.mistSolo = false;
@@ -201,6 +204,30 @@ class Settings
                         reject();
                     };
                     img.src = path;
+                case "Flags":
+                    console.log('hellooo from flags')
+                    if (this.flag_images[path])
+                    {
+                        resolve();
+                    }
+                    else
+                    {
+                        const img = new Image();
+
+                        img.onload = () =>
+                        {
+                            this.flag_images[path] = img; 
+                            resolve();
+                        };
+
+                        img.onerror = () =>
+                        {
+                            this.flag_images[path] = null;
+                            reject();
+                        };
+
+                        img.src = path;
+                    }
                     break;
 
                 default:
@@ -225,6 +252,8 @@ class Settings
             
             case "plain_url":
                 return this.url_images[path];
+            case "Flags":
+                return this.flag_images[path];
 
             default:
                 return null;
@@ -448,6 +477,7 @@ class Settings
 
         this.livingResourcesHP = this.returnLocalBool("settingLivingResourcesHP");
         this.livingResourcesID = this.returnLocalBool("settingLivingResourcesID");
+        this.resourceSize = this.returnLocalBool("settingRawSize");
         //#endregion
 
         //#region Enemies
